@@ -6,7 +6,6 @@ from django.core.mail import send_mail
 from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
 from taggit.models import Tag
 from django.db.models import Count
-from django.contrib.postgres.search import SearchVector, SearchQuery,SearchRank
 from django.contrib.postgres.search import TrigramSimilarity
 
 class PostListView(ListView):
@@ -81,8 +80,6 @@ def post_search(request):
         form = SeachForm(request.GET)
         if form.is_valid():
             query = form.cleaned_data['query']
-            search_vector = SearchVector('title', weight='A') + SearchVector('body', weight='b')
-            search_query = SearchQuery(query)
             results = Post.published.annotate(similarity=TrigramSimilarity('title',query),).filter(similarity__gte = 0.1).order_by('-similarity')
         
     return render(request,'blog/post/search.html',{'form': form,'query': query,'results': results})
